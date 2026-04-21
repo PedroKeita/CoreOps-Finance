@@ -1,0 +1,33 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: coreops-postgres
+    environment:
+      POSTGRES_DB: coreops
+      POSTGRES_USER: coreops
+      POSTGRES_PASSWORD: coreops123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coreops"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: coreops-app
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/coreops
+      SPRING_DATASOURCE_USERNAME: coreops
+      SPRING_DATASOURCE_PASSWORD: coreops123
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
